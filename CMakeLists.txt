@@ -1,0 +1,92 @@
+cmake_minimum_required(VERSION 3.16)
+
+execute_process(
+  COMMAND git describe --tags
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE ABLS_AGENT_SHELLY_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+
+if(NOT ABLS_AGENT_SHELLY_VERSION)
+  set(ABLS_AGENT_SHELLY_VERSION "unknown")
+endif()
+
+if(ABLS_AGENT_SHELLY_VERSION MATCHES "^v?([0-9]+\\.[0-9]+)")
+  set(ABLS_AGENT_SHELLY_VERSION_NUMBER "${CMAKE_MATCH_1}")
+else()
+  set(ABLS_AGENT_SHELLY_VERSION_NUMBER "0.0")
+endif()
+
+project(abls-agent-shelly
+  VERSION ${ABLS_AGENT_SHELLY_VERSION_NUMBER}
+  DESCRIPTION "Abls Habitat Shelly runtime"
+  HOMEPAGE_URL "https://docs.abls-habitat.fr"
+  LANGUAGES C
+)
+
+include(GNUInstallDirs)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+pkg_check_modules(JSON_GLIB REQUIRED json-glib-1.0)
+pkg_check_modules(ABLS_LIBS REQUIRED abls-libs)
+pkg_check_modules(ABLS_AGENT_LIBS REQUIRED abls-agent-libs)
+
+add_executable(abls-agent-shelly
+  src/shelly.c
+)
+
+target_include_directories(abls-agent-shelly PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${GLIB_INCLUDE_DIRS}
+  ${JSON_GLIB_INCLUDE_DIRS}
+  ${ABLS_LIBS_INCLUDE_DIRS}
+  ${ABLS_AGENT_LIBS_INCLUDE_DIRS}
+)
+
+target_compile_options(abls-agent-shelly PRIVATE
+  -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -pipe -g -ggdb
+)
+
+target_compile_definitions(abls-agent-shelly PRIVATE
+  ABLS_AGENT_SHELLY_VERSION="${ABLS_AGENT_SHELLY_VERSION}"
+)
+
+target_link_libraries(abls-agent-shelly PRIVATE
+  ${GLIB_LIBRARIES}
+  ${JSON_GLIB_LIBRARIES}
+  ${ABLS_LIBS_EXACT}
+  ${ABLS_AGENT_LIBS_LIBRARIES}
+)
+
+install(TARGETS abls-agent-shelly
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
+)
+
+set(CPACK_PACKAGE_NAME "abls-agent-shelly")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_RELEASE "1")
+set(CPACK_PACKAGE_VENDOR "Abls-Habitat")
+set(CPACK_PACKAGE_CONTACT "sebastien.lefevre@abls-habitat.fr")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_LICENSE "GPLv3")
+
+set(CPACK_GENERATOR "RPM;DEB")
+set(CPACK_RPM_COMPONENT_INSTALL ON)
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_COMPONENTS_ALL runtime)
+
+set(CPACK_RPM_RUNTIME_PACKAGE_NAME "abls-agent-shelly")
+set(CPACK_RPM_RUNTIME_PACKAGE_SUMMARY "Abls-Habitat Shelly runtime")
+set(CPACK_RPM_RUNTIME_PACKAGE_REQUIRES "glib2, json-glib, abls-libs, abls-agent-libs")
+set(CPACK_RPM_RUNTIME_FILE_NAME "abls-agent-shelly-${PROJECT_VERSION}-${CPACK_PACKAGE_RELEASE}.rpm")
+set(CPACK_RPM_RUNTIME_DEBUGINFO_PACKAGE ON)
+set(CPACK_RPM_RUNTIME_DEBUGINFO_FILE_NAME "RPM-DEFAULT")
+set(CPACK_RPM_RUNTIME_BUILD_SOURCE_DIRS_PREFIX "/usr/src/debug")
+
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "abls-agent-shelly")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_DEPENDS "libglib2.0-0, libjson-glib-1.0-0, abls-libs, abls-agent-libs")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_SHLIBDEPS ON)
+
+include(CPack)
