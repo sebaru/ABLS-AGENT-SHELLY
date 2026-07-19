@@ -129,7 +129,7 @@
      { Agent_loop ( agent );                                             /* Loop sur l'agent pour mettre a jour la telemetrie */
 /****************************************************** Ecoute du master ******************************************************/
        JsonNode *mqtt_local_message;
-       while ( (mqtt_local_message = Mqtt_get_message ( agent->mqtt_local ) ) != NULL )
+       while ( (mqtt_local_message = Agent_get_mqtt_local_message ( agent ) ) != NULL )
         { if (Mqtt_topic_is ( mqtt_local_message, 2, "+", "online" ) )
            { gchar *payload = Json_get_string ( mqtt_local_message, "payload" );
              gboolean online = (payload && !strcasecmp ( payload, "true" ) ? TRUE : FALSE);
@@ -294,6 +294,11 @@
              Mqtt_Send_AI ( agent, vars->PF3           , Json_get_double ( mqtt_local_message, "c_pf" ), TRUE );
            }
           Json_unref ( mqtt_local_message );
+        }
+/****************************************************** Ecoute de l'api *******************************************************/
+       JsonNode *mqtt_api_message;
+       while ( (mqtt_api_message = Agent_get_mqtt_api_message ( agent ) ) != NULL )
+        { Json_unref (mqtt_api_message);
         }
      }
 end:
