@@ -125,6 +125,8 @@
     Mqtt_subscribe ( agent->mqtt_local, "%s/status/emdata:0", string_id );
     Mqtt_subscribe ( agent->mqtt_local, "%s/status/em:0", string_id );
 
+    Agent_is_ready ( agent );
+
     while(agent->Agent_run == AGENT_IS_RUNNING)                                              /* On tourne tant que necessaire */
      { Agent_loop ( agent );                                             /* Loop sur l'agent pour mettre a jour la telemetrie */
 /****************************************************** Ecoute du master ******************************************************/
