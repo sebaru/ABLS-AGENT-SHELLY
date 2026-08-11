@@ -38,7 +38,9 @@
 
     gchar *string_id   = Json_get_string ( agent->api_config, "string_id" );
     if (!string_id)
-     { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" ); goto end; }
+     { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
+       Agent_end(agent);
+     }
 
     gboolean shelly_pro_em_50 = g_str_has_prefix ( string_id, SHELLY_PRO_EM_50 );
     gboolean shelly_pro_3_em  = g_str_has_prefix ( string_id, SHELLY_PRO_3_EM );
@@ -114,7 +116,9 @@
        vars->RESET_INDEX_OUT3 = Mnemo_create_DO ( agent, "RESET_INDEX_OUT3", "Réinitialiser l'index de puissance injectée Phase 3", TRUE );
      }
     else
-      { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "Shelly type '%s' not recognized", string_id ); goto end; }
+     { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "Shelly type '%s' not recognized", string_id );
+       Agent_end(agent);
+     }
 
     Mqtt_subscribe ( agent->mqtt_local, "%s/online", string_id );
     Mqtt_subscribe ( agent->mqtt_local, "%s/events/rpc", string_id );
@@ -303,7 +307,7 @@
         { Json_unref (mqtt_api_message);
         }
      }
-end:
+
     Agent_end(agent);
   }
 /*----------------------------------------------------------------------------------------------------------------------------*/
