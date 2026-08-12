@@ -1,5 +1,5 @@
 /******************************************************************************************************************************/
-/* ABLS-AGENT-SHELLY/shelly.c  Gestion des agents SHELLY                                                                     */
+/* ABLS-AGENT-SHELLY/shelly.c  Gestion des agents SHELLY                                                                  v   */
 /* Projet Abls-Habitat                   Gestion d'habitat                                                08.03.2024 23:35:42 */
 /* Auteur: LEFEVRE Sebastien                                                                                                  */
 /******************************************************************************************************************************/
@@ -33,13 +33,17 @@
 /* Sortie: Niet                                                                                                               */
 /******************************************************************************************************************************/
  gint main ( gint argc, gchar *argv[] )
-  { struct ABLS_AGENT *agent = Agent_init ( argv[0], "shelly", ABLS_AGENT_SHELLY_VERSION, sizeof(struct ABLS_SHELLY_VARS), argc, argv );
+  { Config_add_parameter ( "string-id", "STRING_ID", "String ID of the Shelly device", CONFIG_STRING );
+    struct ABLS_AGENT *agent = Agent_init ( argv[0], "shelly", ABLS_AGENT_SHELLY_VERSION, sizeof(struct ABLS_SHELLY_VARS), argc, argv );
     struct ABLS_SHELLY_VARS *vars = agent->vars;
 
-    gchar *string_id   = Json_get_string ( agent->api_config, "string_id" );
+    gchar *string_id = Json_get_string ( agent->api_config, "string_id" );
     if (!string_id)
-     { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
-       Agent_end(agent);
+     { string_id = Json_get_string ( agent->local_config, "string_id" );
+       if (!string_id)
+        { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
+          Agent_end(agent);
+        }
      }
 
     gboolean shelly_pro_em_50 = g_str_has_prefix ( string_id, SHELLY_PRO_EM_50 );
