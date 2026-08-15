@@ -37,13 +37,10 @@
     struct ABLS_AGENT *agent = Agent_init ( argv[0], "shelly", ABLS_AGENT_SHELLY_VERSION, sizeof(struct ABLS_SHELLY_VARS), argc, argv );
     struct ABLS_SHELLY_VARS *vars = agent->vars;
 
-    gchar *string_id = Json_get_string ( agent->api_config, "string_id" );
+    gchar *string_id = Agent_config_get_string ( agent, "string_id" );
     if (!string_id)
-     { string_id = Json_get_string ( agent->local_config, "string_id" );
-       if (!string_id)
-        { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
-          Agent_end(agent);
-        }
+     { Info( __func__, agent->agent_classe, agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
+       Agent_end(agent);
      }
 
     gboolean shelly_pro_em_50 = g_str_has_prefix ( string_id, SHELLY_PRO_EM_50 );
