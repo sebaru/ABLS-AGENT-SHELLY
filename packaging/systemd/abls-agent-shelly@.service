@@ -8,6 +8,8 @@ Type=simple
 ExecStart=/usr/bin/abls-agent-shelly --agent-tech-id=%i
 DynamicUser=yes
 SupplementaryGroups=abls
+StateDirectory=abls-agent-shelly/%i
+WorkingDirectory=%S/abls-agent-shelly/%i
 Restart=on-failure
 RestartSec=5s
 
