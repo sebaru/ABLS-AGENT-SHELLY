@@ -1,5 +1,5 @@
 #!/bin/bash
-# build_apt.sh -- Build DEB package for abls-agent-shelly via CPack
+# build_apt.sh -- Build DEB package for abls-agent-sms via CPack
 set -euo pipefail
 
 PACKAGE_ONLY=false
@@ -96,7 +96,7 @@ cmake_args=(
   -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE="$TARGET_ARCH"
 )
 
-echo "Building DEB package for abls-agent-shelly..."
+echo "Building DEB package for abls-agent-sms..."
 echo "Project directory: $PROJECT_DIR"
 echo "Build directory:   $BUILD_DIR"
 echo "Output directory:  $ARTIFACT_DIR"
@@ -109,8 +109,8 @@ mkdir -p "$BUILD_DIR"
 mkdir -p "$ARTIFACT_DIR"
 
 if [[ "$CLEAN" == "true" ]]; then
-  rm -f "$BUILD_DIR"/abls-agent-shelly*.deb
-  rm -f "$ARTIFACT_DIR"/abls-agent-shelly*.deb
+  rm -f "$BUILD_DIR"/abls-agent-sms*.deb
+  rm -f "$ARTIFACT_DIR"/abls-agent-sms*.deb
 fi
 
 cmake -S "$PROJECT_DIR" -B "$BUILD_DIR" "${cmake_args[@]}"
@@ -131,14 +131,14 @@ runtime_deb=""
 while IFS= read -r deb_file; do
   if command -v dpkg-deb >/dev/null 2>&1; then
     pkg_name="$(dpkg-deb -f "$deb_file" Package 2>/dev/null || true)"
-    if [[ "$pkg_name" == "abls-agent-shelly" ]]; then
+    if [[ "$pkg_name" == "abls-agent-sms" ]]; then
       runtime_deb="$deb_file"
       continue
     fi
   fi
 
   case "$(basename "$deb_file")" in
-    *runtime*.deb|abls-agent-shelly-*.deb)
+    *runtime*.deb|abls-agent-sms-*.deb)
       runtime_deb="$deb_file"
       ;;
   esac

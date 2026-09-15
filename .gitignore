@@ -12,7 +12,7 @@ Makefile
 *.a
 *.so
 *.so.*
-abls-agent-shelly
+abls-agent-sms
 
 # Editor
 *.swp

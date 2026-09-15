@@ -1,15 +1,15 @@
 [Unit]
-Description=ABLS Agent Shelly (%i)
+Description=ABLS Agent SMS (%i)
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/abls-agent-shelly --agent-tech-id=%i
+ExecStart=/usr/bin/abls-agent-sms --agent-tech-id=%i
 DynamicUser=yes
 SupplementaryGroups=abls
-StateDirectory=abls-agent-shelly/%i
-WorkingDirectory=%S/abls-agent-shelly/%i
+StateDirectory=abls-agent-sms/%i
+WorkingDirectory=%S/abls-agent-sms/%i
 Restart=on-failure
 RestartSec=5s
 

@@ -1,21 +1,26 @@
-# abls-agent-shelly
+# abls-agent-sms
 
-Containerized Shelly runtime for Abls-Habitat.
+Standalone SMS runtime for Abls-Habitat.
 
 ## Current implementation status
 
 - Runtime skeleton based on ABLS-AGENT-LIBS
-- Facility fixed to `shelly`
-- Prefix initialized from `agent_tech_id`
+- Facility fixed to `sms`
+- Instance identified by `agent_tech_id`
+- GSM send and receive via ModemManager on D-Bus
+- Fallback to OVH or Free Mobile API when GSM fails
 - Config bootstrap via Json_read_config using precedence:
   1. Environment variables (ABLS_*)
-  2. /etc/abls-habitat-agent.conf
+  2. /etc/abls/abls-agent.conf and per-agent config
   3. Defaults in code
 
-Supported Shelly devices:
+Supported SMS features:
 
-- `shellyproem50`
-- `shellypro3em`
+- outgoing SMS via GSM modem
+- OVH REST fallback
+- Free Mobile REST fallback
+- incoming commands `ping`, `smsoff`, `smson`
+- text command mapping via `/run/mapping/search_txt`
 
 ## Build
 
@@ -71,7 +76,7 @@ The release flow:
 ## Container build
 
 ```sh
-podman build -t abls-agent-shelly:dev \
+podman build -t abls-agent-sms:dev \
   --build-arg ABLS_LIBS_DEVEL_RPM_URL=<url> \
   --build-arg ABLS_AGENT_LIBS_DEVEL_RPM_URL=<url> \
   --build-arg ABLS_LIBS_RPM_URL=<url> \

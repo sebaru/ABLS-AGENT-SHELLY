@@ -23,7 +23,7 @@ done
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
 
-echo "Building RPM package for abls-agent-shelly..."
+echo "Building RPM package for abls-agent-sms..."
 echo "Project directory: $PROJECT_DIR"
 echo "Build directory:   $BUILD_DIR"
 echo "Package-only mode: $PACKAGE_ONLY"
@@ -41,13 +41,13 @@ elif [[ ! -f "$BUILD_DIR/CPackConfig.cmake" ]]; then
   exit 1
 fi
 
-rm -f "$BUILD_DIR"/abls-agent-shelly-*.rpm
+rm -f "$BUILD_DIR"/abls-agent-sms-*.rpm
 
 pushd "$BUILD_DIR" >/dev/null
 cpack -G RPM
 popd >/dev/null
 
-runtime_rpm=$(find "$BUILD_DIR" -maxdepth 1 -type f -name 'abls-agent-shelly-[0-9]*.rpm' | sort | tail -n 1)
+runtime_rpm=$(find "$BUILD_DIR" -maxdepth 1 -type f -name 'abls-agent-sms-[0-9]*.rpm' | sort | tail -n 1)
 debuginfo_rpm=$(find "$BUILD_DIR" -maxdepth 1 -type f -name '*debuginfo*.rpm' | sort | tail -n 1)
 
 if [[ -z "$runtime_rpm" ]]; then
