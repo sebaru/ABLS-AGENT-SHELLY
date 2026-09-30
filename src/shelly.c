@@ -38,11 +38,11 @@
  gint main ( gint argc, gchar *argv[] )
   { Config_add_parameter ( "string-id", "STRING_ID", "String ID of the Shelly device", CONFIG_STRING );
     Agent = Agent_init ( argv[0], "shelly", ABLS_AGENT_SHELLY_VERSION, sizeof(struct ABLS_SHELLY_VARS), argc, argv );
-    Agent_vars = Agent->vars;
+    Agent_vars = Agent_get_vars ( Agent );
 
     gchar *string_id = Agent_config_get_string ( Agent, "string_id" );
     if (!string_id)
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "ERROR: No string_id, stopping thread" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "ERROR: No string_id, stopping thread" );
        Agent_end(Agent);
      }
 
@@ -50,7 +50,7 @@
     gboolean shelly_pro_3_em  = g_str_has_prefix ( string_id, SHELLY_PRO_3_EM );
 
     if (shelly_pro_em_50)                                                                               /* Monophasé 2 canaux */
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Using SHELLY_PRO_EM_50 (monophasé)" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Using SHELLY_PRO_EM_50 (monophasé)" );
        Agent_vars->EM10_ACT_POWER  = Mnemo_create_AI ( Agent, "EM10_ACT_POWER",  "EM10 Puissance active", "W",     AGENT_ARCHIVE_1_MIN );
        Agent_vars->EM10_APRT_POWER = Mnemo_create_AI ( Agent, "EM10_APRT_POWER", "EM10 Puissance apparente", "VA", AGENT_ARCHIVE_1_MIN );
        Agent_vars->EM10_CURRENT    = Mnemo_create_AI ( Agent, "EM10_CURRENT",    "EM10 Courant", "A",              AGENT_ARCHIVE_1_MIN );
@@ -78,7 +78,7 @@
        Agent_vars->EM11_RESET_INDEX_OUT = Mnemo_create_DO ( Agent, "EM11_RESET_INDEX_OUT", "EM11 Réinitialiser l'index de puissance injectée", TRUE );
      }
     else if (shelly_pro_3_em)                                                                                     /* Triphasé */
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Using SHELLY_PRO_3_EM (triphasé)" );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Using SHELLY_PRO_3_EM (triphasé)" );
        Agent_vars->U1          = Mnemo_create_AI ( Agent, "U1",           "Voltage Phase 1", "V", AGENT_ARCHIVE_1_MIN );
        Agent_vars->U2          = Mnemo_create_AI ( Agent, "U2",           "Voltage Phase 2", "V", AGENT_ARCHIVE_1_MIN );
        Agent_vars->U3          = Mnemo_create_AI ( Agent, "U3",           "Voltage Phase 3", "V", AGENT_ARCHIVE_1_MIN );
@@ -120,22 +120,22 @@
        Agent_vars->RESET_INDEX_OUT3 = Mnemo_create_DO ( Agent, "RESET_INDEX_OUT3", "Réinitialiser l'index de puissance injectée Phase 3", TRUE );
      }
     else
-     { Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_ERR, "Shelly type '%s' not recognized", string_id );
+     { Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_ERR, "Shelly type '%s' not recognized", string_id );
        Agent_end(Agent);
      }
 
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/online", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/events/rpc", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/em1data:0", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/em1data:1", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/em1:0", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/em1:1", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/emdata:0", string_id );
-    Mqtt_subscribe ( Agent->mqtt_local, "%s/status/em:0", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/online", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/events/rpc", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/em1data:0", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/em1data:1", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/em1:0", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/em1:1", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/emdata:0", string_id );
+    Agent_subscribe_mqtt_local ( Agent, "%s/status/em:0", string_id );
 
     Agent_is_ready ( Agent );
 
-    while(Agent->Agent_run == AGENT_IS_RUNNING)                                              /* On tourne tant que necessaire */
+    while(Agent_is_running ( Agent ))                                              /* On tourne tant que necessaire */
      { Agent_loop ( Agent );                                             /* Loop sur l'Agent pour mettre a jour la telemetrie */
 /****************************************************** Ecoute du master ******************************************************/
        JsonNode *mqtt_local_message;
@@ -143,7 +143,7 @@
         { if (Mqtt_topic_is ( mqtt_local_message, 2, "+", "online" ) )
            { gchar *payload = Json_get_string ( mqtt_local_message, "payload" );
              gboolean online = (payload && !strcasecmp ( payload, "true" ) ? TRUE : FALSE);
-             Info( __func__, Agent->agent_classe, Agent->agent_tech_id, LOG_NOTICE, "Shelly '%s' is %s", string_id, (online ? "ONLINE" : "OFFLINE") );
+             Info( __func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Shelly '%s' is %s", string_id, (online ? "ONLINE" : "OFFLINE") );
              Agent_send_comm_to_master ( Agent, online );
            }
           else if (Mqtt_topic_is ( mqtt_local_message, 3, "+", "events", "rpc" ) && Json_has_member ( mqtt_local_message, "method" ))
@@ -308,7 +308,9 @@
 /****************************************************** Ecoute de l'api *******************************************************/
        JsonNode *mqtt_api_message;
        while ( (mqtt_api_message = Agent_get_mqtt_api_message ( Agent ) ) != NULL )
-        { Json_unref (mqtt_api_message);
+        { if ( Mqtt_topic_is ( mqtt_api_message, 4, "+", "AGENT", Agent_get_tech_id ( Agent ), "TEST" ) )
+           { Info(__func__, Agent_get_classe ( Agent ), Agent_get_tech_id ( Agent ), LOG_NOTICE, "Agent Test from API."); }
+          Json_unref (mqtt_api_message);
         }
      }
 
